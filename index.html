@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pals Tap Ultra</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background: radial-gradient(circle, #2c3e50, #000); color: white; text-align: center; font-family: sans-serif; overflow: hidden; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        #balance { font-size: 45px; font-weight: 900; margin-top: 30px; color: #ffd700; }
+        .coin-wrapper { position: relative; width: 260px; height: 260px; margin-top: 20px; background: #ffd700; border-radius: 50%; border: 8px solid #b8860b; box-shadow: 0 0 30px rgba(255,215,0,0.3); display: flex; justify-content: center; align-items: center; transition: transform 0.05s; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+        .coin-wrapper:active { transform: scale(0.95); }
+        .character-inside { width: 100%; height: 100%; object-fit: cover; }
+        .energy-container { width: 80%; margin-top: 20px; }
+        .energy-bar { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
+        #energy-fill { width: 100%; height: 100%; background: #ffcc00; transition: 0.2s; }
+        .menu { position: absolute; bottom: 15px; display: grid; grid-template-columns: repeat(4, 1fr); width: 95%; gap: 5px; }
+        .menu-item { background: rgba(255,255,255,0.1); padding: 10px 2px; border-radius: 10px; font-size: 9px; cursor: pointer; }
+        .plus-one { position: absolute; color: #ffd700; font-size: 30px; font-weight: bold; animation: floatUp 0.6s ease-out forwards; pointer-events: none; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+    </style>
+</head>
+<body>
+    <div id="balance">0</div>
+    <div class="coin-wrapper" id="tapBtn">
+        <img src="https://i.postimg.cc/BnStQR8Q/Screenshot-2026-03-17-00-01-27-588-edit-com-google-android-googlequicksearchbox.jpg" class="character-inside">
+    </div>
+    <div class="energy-container">
+        <div class="energy-bar"><div id="energy-fill"></div></div>
+        <div style="margin-top:5px;">⚡️ <span id="energy-val">1000</span></div>
+    </div>
+    <div class="menu">
+        <div class="menu-item" onclick="buyUpgrade('multi')">🚀 Мульти (500)</div>
+        <div class="menu-item" onclick="buyUpgrade('auto')">🤖 Авто (1000)</div>
+        <div class="menu-item" onclick="tg.showAlert('Рефералы скоро!')">👥 Друзья</div>
+        <div class="menu-item" onclick="tg.showAlert('Топ в разработке')">🏆 Топ</div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        let count = parseInt(localStorage.getItem('p_score')) || 0;
+        let energy = parseInt(localStorage.getItem('p_energy')) || 1000;
+        let multi = parseInt(localStorage.getItem('p_multi')) || 1;
+        let auto = parseInt(localStorage.getItem('p_auto')) || 0;
+
+        function updateUI() {
+            document.getElementById('balance').innerText = Math.floor(count).toLocaleString();
+            document.getElementById('energy-val').innerText = energy;
+            document.getElementById('energy-fill').style.width = (energy / 1000 * 100) + '%';
+        }
+
+        document.getElementById('tapBtn').addEventListener('touchstart', (e) => {
+            if (energy >= multi) {
+                count += multi; energy -= multi;
+                const plus = document.createElement('div');
+                plus.innerText = '+' + multi; plus.className = 'plus-one';
+                plus.style.left = e.touches[0].clientX + 'px'; plus.style.top = e.touches[0].clientY + 'px';
+                document.body.appendChild(plus); setTimeout(() => plus.remove(), 600);
+                updateUI(); save(); tg.HapticFeedback.impactOccurred('medium');
+            }
+        });
+
+        function buyUpgrade(type) {
+            if (type === 'multi' && count >= 500) {
+                count -= 500; multi++; tg.showAlert('Теперь +'+multi+' за клик!');
+            } else if (type === 'auto' && count >= 1000) {
+                count -= 1000; auto += 0.5; tg.showAlert('Автокликер запущен!');
+            } else { tg.showAlert('Недостаточно золота!'); }
+            updateUI(); save();
+        }
+
+        setInterval(() => { 
+            if (auto > 0) { count += auto; updateUI(); save(); }
+            if (energy < 1000) { energy++; updateUI(); }
+        }, 1000);
+
+        function save() {
+            localStorage.setItem('p_score', count);
+            localStorage.setItem('p_energy', energy);
+            localStorage.setItem('p_multi', multi);
+            localStorage.setItem('p_auto', auto);
+        }
+        updateUI();
+    </script>
+</body>
+</html>
