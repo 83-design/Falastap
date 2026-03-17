@@ -3,83 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Pals Tap Ultra</title>
+    <title>Falas Tap Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: radial-gradient(circle, #2c3e50, #000); color: white; text-align: center; font-family: sans-serif; overflow: hidden; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
-        #balance { font-size: 45px; font-weight: 900; margin-top: 30px; color: #ffd700; }
-        .coin-wrapper { position: relative; width: 260px; height: 260px; margin-top: 20px; background: #ffd700; border-radius: 50%; border: 8px solid #b8860b; box-shadow: 0 0 30px rgba(255,215,0,0.3); display: flex; justify-content: center; align-items: center; transition: transform 0.05s; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-        .coin-wrapper:active { transform: scale(0.95); }
-        .character-inside { width: 100%; height: 100%; object-fit: cover; }
-        .energy-container { width: 80%; margin-top: 20px; }
-        .energy-bar { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
-        #energy-fill { width: 100%; height: 100%; background: #ffcc00; transition: 0.2s; }
-        .menu { position: absolute; bottom: 15px; display: grid; grid-template-columns: repeat(4, 1fr); width: 95%; gap: 5px; }
-        .menu-item { background: rgba(255,255,255,0.1); padding: 10px 2px; border-radius: 10px; font-size: 9px; cursor: pointer; }
-        .plus-one { position: absolute; color: #ffd700; font-size: 30px; font-weight: bold; animation: floatUp 0.6s ease-out forwards; pointer-events: none; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+        body { 
+            background: radial-gradient(circle, #2c3e50, #000); 
+            color: white; text-align: center; 
+            font-family: 'Arial', sans-serif; overflow: hidden; margin: 0;
+            display: flex; flex-direction: column; align-items: center; height: 100vh;
+        }
+        #balance { font-size: 50px; font-weight: 900; margin-top: 30px; color: #ffd700; text-shadow: 0 0 20px rgba(255,215,0,0.4); }
+        .label { font-size: 12px; color: #888; letter-spacing: 2px; margin-top: 10px; }
+
+        /* МОНЕТКА */
+        .coin-wrapper {
+            position: relative; width: 270px; height: 270px; margin-top: 20px;
+            background: #ffd700; border-radius: 50%; border: 10px solid #b8860b;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 30px rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            transition: transform 0.05s; overflow: hidden; -webkit-tap-highlight-color: transparent;
+        }
+        .coin-wrapper:active { transform: scale(0.92); }
+        .character-inside { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+
+        /* ЭФФЕКТЫ ВЫЛЕТАЮЩИХ ЦИФР */
+        .plus-one {
+            position: absolute; color: #ffd700; font-size: 35px; font-weight: bold;
+            animation: floatUp 0.6s ease-out forwards; pointer-events: none; z-index: 100;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-130px); }
+        }
+
+        /* ЭНЕРГИЯ */
+        .energy-container { width: 80%; margin-top: 25px; }
+        .energy-bar { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; border: 1px solid #444; }
+        #energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff3300, #f39c12); transition: 0.2s; }
+        .energy-text { font-size: 16px; margin-top: 8px; color: #ff3300; font-weight: bold; }
+
+        /* МЕНЮ */
+        .menu {
+            position: absolute; bottom: 20px; display: grid;
+            grid-template-columns: repeat(4, 1fr); width: 95%; gap: 8px;
+        }
+        .menu-item {
+            background: rgba(255,255,255,0.08); padding: 12px 5px; border-radius: 15px;
+            font-size: 10px; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .menu-item span { display: block; font-size: 8px; color: #ffd700; margin-top: 4px; }
     </style>
 </head>
 <body>
+
+    <div class="label">БАЛАНС</div>
     <div id="balance">0</div>
+
     <div class="coin-wrapper" id="tapBtn">
         <img src="https://i.postimg.cc/BnStQR8Q/Screenshot-2026-03-17-00-01-27-588-edit-com-google-android-googlequicksearchbox.jpg" class="character-inside">
     </div>
+
     <div class="energy-container">
         <div class="energy-bar"><div id="energy-fill"></div></div>
-        <div style="margin-top:5px;">⚡️ <span id="energy-val">1000</span></div>
+        <div class="energy-text">⚡️ <span id="energy-val">100</span> / 100</div>
     </div>
+
     <div class="menu">
-        <div class="menu-item" onclick="buyUpgrade('multi')">🚀 Мульти (500)</div>
-        <div class="menu-item" onclick="buyUpgrade('auto')">🤖 Авто (1000)</div>
-        <div class="menu-item" onclick="tg.showAlert('Рефералы скоро!')">👥 Друзья</div>
-        <div class="menu-item" onclick="tg.showAlert('Топ в разработке')">🏆 Топ</div>
+        <div class="menu-item" onclick="buyUpgrade('multi')">🚀 Мультитап <span id="multi-cost">500</span></div>
+        <div class="menu-item" onclick="buyUpgrade('auto')">🤖 Автобот <span id="auto-cost">1000</span></div>
+        <div class="menu-item" onclick="showRef()">👥 Друзья <span>+5000</span></div>
+        <div class="menu-item" onclick="tg.showAlert('Топ игроков в разработке!')">🏆 Топ <span>скоро</span></div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        let count = parseInt(localStorage.getItem('p_score')) || 0;
-        let energy = parseInt(localStorage.getItem('p_energy')) || 1000;
-        let multi = parseInt(localStorage.getItem('p_multi')) || 1;
-        let auto = parseInt(localStorage.getItem('p_auto')) || 0;
+        tg.expand();
+
+        // Данные
+        let score = parseFloat(localStorage.getItem('f_score')) || 0;
+        let energy = parseInt(localStorage.getItem('f_energy')) || 100;
+        let multiLevel = parseInt(localStorage.getItem('f_multi')) || 1;
+        let autoLevel = parseInt(localStorage.getItem('f_auto')) || 0;
+        const maxEnergy = 100;
+        const energyCostPerClick = 10; // СКОЛЬКО ТРАТИТСЯ ЗА ТАП
 
         function updateUI() {
-            document.getElementById('balance').innerText = Math.floor(count).toLocaleString();
+            document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
             document.getElementById('energy-val').innerText = energy;
-            document.getElementById('energy-fill').style.width = (energy / 1000 * 100) + '%';
+            document.getElementById('energy-fill').style.width = (energy / maxEnergy * 100) + '%';
+            document.getElementById('multi-cost').innerText = (multiLevel * 500);
+            document.getElementById('auto-cost').innerText = ((autoLevel + 1) * 1000);
         }
 
+        // Клик
         document.getElementById('tapBtn').addEventListener('touchstart', (e) => {
-            if (energy >= multi) {
-                count += multi; energy -= multi;
+            if (energy >= energyCostPerClick) {
+                score += multiLevel;
+                energy -= energyCostPerClick; // ТРАТИМ БЫСТРЕЕ
+                
+                const touch = e.touches[0];
                 const plus = document.createElement('div');
-                plus.innerText = '+' + multi; plus.className = 'plus-one';
-                plus.style.left = e.touches[0].clientX + 'px'; plus.style.top = e.touches[0].clientY + 'px';
-                document.body.appendChild(plus); setTimeout(() => plus.remove(), 600);
-                updateUI(); save(); tg.HapticFeedback.impactOccurred('medium');
+                plus.innerText = '+' + multiLevel;
+                plus.className = 'plus-one';
+                plus.style.left = touch.clientX - 20 + 'px';
+                plus.style.top = touch.clientY - 40 + 'px';
+                document.body.appendChild(plus);
+                setTimeout(() => plus.remove(), 600);
+
+                updateUI();
+                save();
+                tg.HapticFeedback.impactOccurred('heavy'); // Вибрация сильнее
+            } else {
+                tg.HapticFeedback.notificationOccurred('error');
             }
         });
 
+        // Магазин
         function buyUpgrade(type) {
-            if (type === 'multi' && count >= 500) {
-                count -= 500; multi++; tg.showAlert('Теперь +'+multi+' за клик!');
-            } else if (type === 'auto' && count >= 1000) {
-                count -= 1000; auto += 0.5; tg.showAlert('Автокликер запущен!');
-            } else { tg.showAlert('Недостаточно золота!'); }
+            if (type === 'multi') {
+                let cost = multiLevel * 500;
+                if (score >= cost) {
+                    score -= cost; multiLevel++;
+                    tg.showAlert('Уровень клика: ' + multiLevel);
+                } else { tg.showAlert('Мало золота!'); }
+            } else if (type === 'auto') {
+                let cost = (autoLevel + 1) * 1000;
+                if (score >= cost) {
+                    score -= cost; autoLevel++;
+                    tg.showAlert('Автокликер улучшен!');
+                } else { tg.showAlert('Мало золота!'); }
+            }
             updateUI(); save();
         }
 
-        setInterval(() => { 
-            if (auto > 0) { count += auto; updateUI(); save(); }
-            if (energy < 1000) { energy++; updateUI(); }
+        function showRef() {
+            let id = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "user";
+            let link = "https://t.me/Falastap_bot?start=" + id;
+            tg.showPopup({
+                title: 'Рефералы',
+                message: 'Твоя ссылка:\n' + link,
+                buttons: [{text: 'Копировать', type: 'close'}]
+            });
+        }
+
+        // Восстановление
+        setInterval(() => {
+            if (energy < maxEnergy) { energy += 1; updateUI(); }
+            if (autoLevel > 0) { 
+                score += (autoLevel * 0.2);
+                updateUI(); 
+            }
         }, 1000);
 
         function save() {
-            localStorage.setItem('p_score', count);
-            localStorage.setItem('p_energy', energy);
-            localStorage.setItem('p_multi', multi);
-            localStorage.setItem('p_auto', auto);
+            localStorage.setItem('f_score', score);
+            localStorage.setItem('f_energy', energy);
+            localStorage.setItem('f_multi', multiLevel);
+            localStorage.setItem('f_auto', autoLevel);
         }
+
         updateUI();
     </script>
 </body>
