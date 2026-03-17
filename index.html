@@ -3,84 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Falas Tap Stable</title>
+    <title>Falas Tap Cloud Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            background: radial-gradient(circle, #2c3e50, #000); 
-            color: white; text-align: center; 
-            font-family: 'Arial', sans-serif; overflow: hidden; margin: 0;
-            display: flex; flex-direction: column; align-items: center; height: 100vh;
-        }
+        body { background: radial-gradient(circle, #2c3e50, #000); color: white; text-align: center; font-family: sans-serif; overflow: hidden; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
         #balance { font-size: 50px; font-weight: 900; margin-top: 30px; color: #ffd700; text-shadow: 0 0 20px rgba(255,215,0,0.4); }
-        .label { font-size: 12px; color: #888; letter-spacing: 2px; margin-top: 10px; }
-
-        .coin-wrapper {
-            position: relative; width: 270px; height: 270px; margin-top: 20px;
-            background: #ffd700; border-radius: 50%; border: 10px solid #b8860b;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 30px rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center;
-            transition: transform 0.05s; overflow: hidden; -webkit-tap-highlight-color: transparent;
-        }
+        .coin-wrapper { position: relative; width: 270px; height: 270px; margin-top: 20px; background: #ffd700; border-radius: 50%; border: 10px solid #b8860b; box-shadow: 0 0 40px rgba(255,215,0,0.3); display: flex; justify-content: center; align-items: center; transition: transform 0.1s; overflow: hidden; -webkit-tap-highlight-color: transparent; }
         .coin-wrapper:active { transform: scale(0.95); }
         .character-inside { width: 100%; height: 100%; object-fit: cover; }
-
-        .plus-one {
-            position: absolute; color: #ffd700; font-size: 35px; font-weight: bold;
-            animation: floatUp 0.6s ease-out forwards; pointer-events: none; z-index: 100;
-        }
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-130px); }
-        }
-
         .energy-container { width: 80%; margin-top: 25px; }
         .energy-bar { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; }
-        #energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ffd700, #f39c12); transition: 0.2s; }
-        .energy-text { font-size: 16px; margin-top: 8px; color: #ffd700; font-weight: bold; }
-
-        .menu {
-            position: absolute; bottom: 20px; display: grid;
-            grid-template-columns: repeat(4, 1fr); width: 95%; gap: 8px;
-        }
-        .menu-item {
-            background: rgba(255,255,255,0.08); padding: 12px 5px; border-radius: 15px;
-            font-size: 10px; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
-        }
-        .menu-item span { display: block; font-size: 8px; color: #ffd700; margin-top: 4px; }
+        #energy-fill { width: 100%; height: 100%; background: #ffd700; transition: 0.2s; }
+        .menu { position: absolute; bottom: 20px; display: grid; grid-template-columns: repeat(4, 1fr); width: 95%; gap: 8px; }
+        .menu-item { background: rgba(255,255,255,0.08); padding: 12px 5px; border-radius: 15px; font-size: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .plus-one { position: absolute; color: #ffd700; font-size: 35px; font-weight: bold; animation: floatUp 0.6s ease-out forwards; pointer-events: none; z-index: 100; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-130px); } }
     </style>
 </head>
 <body>
-
-    <div class="label">ТВОЙ БАЛАНС</div>
-    <div id="balance">0</div>
-
+    <div id="balance">Загрузка...</div>
     <div class="coin-wrapper" id="tapBtn">
         <img src="https://i.postimg.cc/BnStQR8Q/Screenshot-2026-03-17-00-01-27-588-edit-com-google-android-googlequicksearchbox.jpg" class="character-inside">
     </div>
-
     <div class="energy-container">
         <div class="energy-bar"><div id="energy-fill"></div></div>
-        <div class="energy-text">⚡️ <span id="energy-val">500</span> / 500</div>
+        <div style="margin-top:8px;">⚡️ <span id="energy-val">500</span> / 500</div>
     </div>
-
-    <div class="menu">
-        <div class="menu-item" onclick="buyUpgrade('multi')">🚀 Мультитап <span id="multi-cost">500</span></div>
-        <div class="menu-item" onclick="buyUpgrade('auto')">🤖 Автобот <span id="auto-cost">1000</span></div>
-        <div class="menu-item" onclick="showRef()">👥 Друзья <span>+5000</span></div>
-        <div class="menu-item" onclick="tg.showAlert('Топ в разработке!')">🏆 Топ <span>скоро</span></div>
+    <div class="menu" id="ui-menu" style="display:none;">
+        <div class="menu-item" onclick="buyUpgrade('multi')">🚀 Мульти <span id="multi-cost">500</span></div>
+        <div class="menu-item" onclick="buyUpgrade('auto')">🤖 Авто <span id="auto-cost">1000</span></div>
+        <div class="menu-item" onclick="showRef()">👥 Друзья</div>
+        <div class="menu-item" onclick="tg.showAlert('Топ скоро!')">🏆 Топ</div>
     </div>
 
     <script>
+        const SB_URL = 'https://peurnzvqtphqdggoonot.supabase.co';
+        const SB_KEY = 'Sb_publishable_l8f8nAyv-Ct4I5yNyC9MdA_N48txJZt'; // Твой ключ
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
         let tg = window.Telegram.WebApp;
         tg.expand();
+        let user = tg.initDataUnsafe.user || { id: 'test_user' };
 
-        // Загрузка данных (Важно: префикс 'falas_' поможет не терять данные при мелких правках)
-        let score = parseFloat(localStorage.getItem('falas_score')) || 0;
-        let energy = parseInt(localStorage.getItem('falas_energy')) || 500;
-        let multiLevel = parseInt(localStorage.getItem('falas_multi')) || 1;
-        let autoLevel = parseInt(localStorage.getItem('falas_auto')) || 0;
+        let score = 0, energy = 500, multiLevel = 1, autoLevel = 0;
         const maxEnergy = 500;
+
+        async function loadData() {
+            let { data, error } = await supabase.from('users').select('*').eq('user_id', user.id).single();
+            if (!data) {
+                data = { user_id: String(user.id), score: 0, energy: 500, multi: 1, auto: 0 };
+                await supabase.from('users').insert([data]);
+            }
+            score = data.score; energy = data.energy; multiLevel = data.multi; autoLevel = data.auto;
+            document.getElementById('ui-menu').style.display = 'grid';
+            updateUI();
+        }
 
         function updateUI() {
             document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
@@ -90,65 +68,41 @@
             document.getElementById('auto-cost').innerText = ((autoLevel + 1) * 1000);
         }
 
+        async function sync() {
+            await supabase.from('users').upsert({ user_id: String(user.id), score, energy, multi: multiLevel, auto: autoLevel });
+        }
+
         document.getElementById('tapBtn').addEventListener('touchstart', (e) => {
             if (energy >= 1) {
-                score += multiLevel;
-                energy -= 1; // Расход теперь медленный (1 за тап)
-                
-                const touch = e.touches[0];
+                score += multiLevel; energy -= 1;
                 const plus = document.createElement('div');
-                plus.innerText = '+' + multiLevel;
-                plus.className = 'plus-one';
-                plus.style.left = touch.clientX - 20 + 'px';
-                plus.style.top = touch.clientY - 40 + 'px';
-                document.body.appendChild(plus);
-                setTimeout(() => plus.remove(), 600);
-
-                updateUI();
-                save();
-                tg.HapticFeedback.impactOccurred('light');
+                plus.innerText = '+' + multiLevel; plus.className = 'plus-one';
+                plus.style.left = e.touches[0].clientX - 20 + 'px'; plus.style.top = e.touches[0].clientY - 40 + 'px';
+                document.body.appendChild(plus); setTimeout(() => plus.remove(), 600);
+                updateUI(); tg.HapticFeedback.impactOccurred('light');
             }
         });
 
         function buyUpgrade(type) {
-            if (type === 'multi') {
-                let cost = multiLevel * 500;
-                if (score >= cost) {
-                    score -= cost; multiLevel++;
-                    tg.showAlert('Уровень мультитапа: ' + multiLevel);
-                } else { tg.showAlert('Не хватает золота!'); }
-            } else if (type === 'auto') {
-                let cost = (autoLevel + 1) * 1000;
-                if (score >= cost) {
-                    score -= cost; autoLevel++;
-                    tg.showAlert('Автобот ускорен!');
-                } else { tg.showAlert('Не хватает золота!'); }
-            }
-            updateUI(); save();
+            if (type === 'multi' && score >= multiLevel * 500) {
+                score -= multiLevel * 500; multiLevel++; sync();
+            } else if (type === 'auto' && score >= (autoLevel + 1) * 1000) {
+                score -= (autoLevel + 1) * 1000; autoLevel++; sync();
+            } else { tg.showAlert('Не хватает золота!'); }
+            updateUI();
         }
 
         function showRef() {
-            let id = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "user";
-            tg.showPopup({
-                title: 'Рефералы',
-                message: 'Твоя ссылка для приглашения:\nhttps://t.me/Falastap_bot?start=' + id,
-                buttons: [{text: 'Закрыть', type: 'close'}]
-            });
+            tg.showPopup({ title: 'Рефералы', message: 'Твоя ссылка:\nhttps://t.me/Falastap_bot?start=' + user.id });
         }
 
+        setInterval(sync, 10000); // Сохранение в базу каждые 10 секунд
         setInterval(() => {
-            if (energy < maxEnergy) { energy += 1; updateUI(); }
+            if (energy < maxEnergy) { energy++; updateUI(); }
             if (autoLevel > 0) { score += (autoLevel * 0.1); updateUI(); }
         }, 1000);
 
-        function save() {
-            localStorage.setItem('falas_score', score);
-            localStorage.setItem('falas_energy', energy);
-            localStorage.setItem('falas_multi', multiLevel);
-            localStorage.setItem('falas_auto', autoLevel);
-        }
-
-        updateUI();
+        loadData();
     </script>
 </body>
 </html>
