@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Falas Tap Pro</title>
+    <title>Falas Tap Stable</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
@@ -15,7 +15,6 @@
         #balance { font-size: 50px; font-weight: 900; margin-top: 30px; color: #ffd700; text-shadow: 0 0 20px rgba(255,215,0,0.4); }
         .label { font-size: 12px; color: #888; letter-spacing: 2px; margin-top: 10px; }
 
-        /* МОНЕТКА */
         .coin-wrapper {
             position: relative; width: 270px; height: 270px; margin-top: 20px;
             background: #ffd700; border-radius: 50%; border: 10px solid #b8860b;
@@ -23,10 +22,9 @@
             display: flex; justify-content: center; align-items: center;
             transition: transform 0.05s; overflow: hidden; -webkit-tap-highlight-color: transparent;
         }
-        .coin-wrapper:active { transform: scale(0.92); }
-        .character-inside { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+        .coin-wrapper:active { transform: scale(0.95); }
+        .character-inside { width: 100%; height: 100%; object-fit: cover; }
 
-        /* ЭФФЕКТЫ ВЫЛЕТАЮЩИХ ЦИФР */
         .plus-one {
             position: absolute; color: #ffd700; font-size: 35px; font-weight: bold;
             animation: floatUp 0.6s ease-out forwards; pointer-events: none; z-index: 100;
@@ -36,13 +34,11 @@
             100% { opacity: 0; transform: translateY(-130px); }
         }
 
-        /* ЭНЕРГИЯ */
         .energy-container { width: 80%; margin-top: 25px; }
-        .energy-bar { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; border: 1px solid #444; }
-        #energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff3300, #f39c12); transition: 0.2s; }
-        .energy-text { font-size: 16px; margin-top: 8px; color: #ff3300; font-weight: bold; }
+        .energy-bar { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; }
+        #energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ffd700, #f39c12); transition: 0.2s; }
+        .energy-text { font-size: 16px; margin-top: 8px; color: #ffd700; font-weight: bold; }
 
-        /* МЕНЮ */
         .menu {
             position: absolute; bottom: 20px; display: grid;
             grid-template-columns: repeat(4, 1fr); width: 95%; gap: 8px;
@@ -56,7 +52,7 @@
 </head>
 <body>
 
-    <div class="label">БАЛАНС</div>
+    <div class="label">ТВОЙ БАЛАНС</div>
     <div id="balance">0</div>
 
     <div class="coin-wrapper" id="tapBtn">
@@ -65,27 +61,26 @@
 
     <div class="energy-container">
         <div class="energy-bar"><div id="energy-fill"></div></div>
-        <div class="energy-text">⚡️ <span id="energy-val">100</span> / 100</div>
+        <div class="energy-text">⚡️ <span id="energy-val">500</span> / 500</div>
     </div>
 
     <div class="menu">
         <div class="menu-item" onclick="buyUpgrade('multi')">🚀 Мультитап <span id="multi-cost">500</span></div>
         <div class="menu-item" onclick="buyUpgrade('auto')">🤖 Автобот <span id="auto-cost">1000</span></div>
         <div class="menu-item" onclick="showRef()">👥 Друзья <span>+5000</span></div>
-        <div class="menu-item" onclick="tg.showAlert('Топ игроков в разработке!')">🏆 Топ <span>скоро</span></div>
+        <div class="menu-item" onclick="tg.showAlert('Топ в разработке!')">🏆 Топ <span>скоро</span></div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Данные
-        let score = parseFloat(localStorage.getItem('f_score')) || 0;
-        let energy = parseInt(localStorage.getItem('f_energy')) || 100;
-        let multiLevel = parseInt(localStorage.getItem('f_multi')) || 1;
-        let autoLevel = parseInt(localStorage.getItem('f_auto')) || 0;
-        const maxEnergy = 100;
-        const energyCostPerClick = 10; // СКОЛЬКО ТРАТИТСЯ ЗА ТАП
+        // Загрузка данных (Важно: префикс 'falas_' поможет не терять данные при мелких правках)
+        let score = parseFloat(localStorage.getItem('falas_score')) || 0;
+        let energy = parseInt(localStorage.getItem('falas_energy')) || 500;
+        let multiLevel = parseInt(localStorage.getItem('falas_multi')) || 1;
+        let autoLevel = parseInt(localStorage.getItem('falas_auto')) || 0;
+        const maxEnergy = 500;
 
         function updateUI() {
             document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
@@ -95,11 +90,10 @@
             document.getElementById('auto-cost').innerText = ((autoLevel + 1) * 1000);
         }
 
-        // Клик
         document.getElementById('tapBtn').addEventListener('touchstart', (e) => {
-            if (energy >= energyCostPerClick) {
+            if (energy >= 1) {
                 score += multiLevel;
-                energy -= energyCostPerClick; // ТРАТИМ БЫСТРЕЕ
+                energy -= 1; // Расход теперь медленный (1 за тап)
                 
                 const touch = e.touches[0];
                 const plus = document.createElement('div');
@@ -112,54 +106,46 @@
 
                 updateUI();
                 save();
-                tg.HapticFeedback.impactOccurred('heavy'); // Вибрация сильнее
-            } else {
-                tg.HapticFeedback.notificationOccurred('error');
+                tg.HapticFeedback.impactOccurred('light');
             }
         });
 
-        // Магазин
         function buyUpgrade(type) {
             if (type === 'multi') {
                 let cost = multiLevel * 500;
                 if (score >= cost) {
                     score -= cost; multiLevel++;
-                    tg.showAlert('Уровень клика: ' + multiLevel);
-                } else { tg.showAlert('Мало золота!'); }
+                    tg.showAlert('Уровень мультитапа: ' + multiLevel);
+                } else { tg.showAlert('Не хватает золота!'); }
             } else if (type === 'auto') {
                 let cost = (autoLevel + 1) * 1000;
                 if (score >= cost) {
                     score -= cost; autoLevel++;
-                    tg.showAlert('Автокликер улучшен!');
-                } else { tg.showAlert('Мало золота!'); }
+                    tg.showAlert('Автобот ускорен!');
+                } else { tg.showAlert('Не хватает золота!'); }
             }
             updateUI(); save();
         }
 
         function showRef() {
             let id = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "user";
-            let link = "https://t.me/Falastap_bot?start=" + id;
             tg.showPopup({
                 title: 'Рефералы',
-                message: 'Твоя ссылка:\n' + link,
-                buttons: [{text: 'Копировать', type: 'close'}]
+                message: 'Твоя ссылка для приглашения:\nhttps://t.me/Falastap_bot?start=' + id,
+                buttons: [{text: 'Закрыть', type: 'close'}]
             });
         }
 
-        // Восстановление
         setInterval(() => {
             if (energy < maxEnergy) { energy += 1; updateUI(); }
-            if (autoLevel > 0) { 
-                score += (autoLevel * 0.2);
-                updateUI(); 
-            }
+            if (autoLevel > 0) { score += (autoLevel * 0.1); updateUI(); }
         }, 1000);
 
         function save() {
-            localStorage.setItem('f_score', score);
-            localStorage.setItem('f_energy', energy);
-            localStorage.setItem('f_multi', multiLevel);
-            localStorage.setItem('f_auto', autoLevel);
+            localStorage.setItem('falas_score', score);
+            localStorage.setItem('falas_energy', energy);
+            localStorage.setItem('falas_multi', multiLevel);
+            localStorage.setItem('falas_auto', autoLevel);
         }
 
         updateUI();
