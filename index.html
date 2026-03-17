@@ -39,7 +39,7 @@
 
     <script>
         const SB_URL = 'https://peurnzvqtphqdggoonot.supabase.co';
-        const SB_KEY = 'Sb_publishable_l8f8nAyv-Ct4I5yNyC9MdA_N48txJZt'; // Твой ключ
+        const SB_KEY = 'Sb_publishable_l8f8nAyv-Ct4I5yNyC9MdA_N48txJZt'; 
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
         let tg = window.Telegram.WebApp;
@@ -50,14 +50,21 @@
         const maxEnergy = 500;
 
         async function loadData() {
-            let { data, error } = await supabase.from('users').select('*').eq('user_id', user.id).single();
-            if (!data) {
-                data = { user_id: String(user.id), score: 0, energy: 500, multi: 1, auto: 0 };
-                await supabase.from('users').insert([data]);
+            try {
+                let { data, error } = await supabase.from('users').select('*').eq('user_id', String(user.id)).single();
+                
+                if (error || !data) {
+                    const newUserData = { user_id: String(user.id), score: 0, energy: 500, multi: 1, auto: 0 };
+                    await supabase.from('users').insert([newUserData]);
+                    score = 0; energy = 500; multiLevel = 1; autoLevel = 0;
+                } else {
+                    score = data.score; energy = data.energy; multiLevel = data.multi; autoLevel = data.auto;
+                }
+                document.getElementById('ui-menu').style.display = 'grid';
+                updateUI();
+            } catch (err) {
+                tg.showAlert("Ошибка базы: " + err.message);
             }
-            score = data.score; energy = data.energy; multiLevel = data.multi; autoLevel = data.auto;
-            document.getElementById('ui-menu').style.display = 'grid';
-            updateUI();
         }
 
         function updateUI() {
@@ -93,10 +100,10 @@
         }
 
         function showRef() {
-            tg.showPopup({ title: 'Рефералы', message: 'Твоя ссылка:\nhttps://t.me/Falastap_bot?start=' + user.id });
+            tg.showPopup({ title: 'Рефералы', message: 'https://t.me/Falastap_bot?start=' + user.id });
         }
 
-        setInterval(sync, 10000); // Сохранение в базу каждые 10 секунд
+        setInterval(sync, 10000); 
         setInterval(() => {
             if (energy < maxEnergy) { energy++; updateUI(); }
             if (autoLevel > 0) { score += (autoLevel * 0.1); updateUI(); }
